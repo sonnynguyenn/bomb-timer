@@ -1,0 +1,173 @@
+<html>
+    <head>
+        <title>Bomb timer</title>
+        <style>
+            *{
+                padding: 0;
+                margin: 0;
+            }
+            body{
+                display: flex;
+                flex-direction: column;
+                justify-items: center;
+                align-items: center;
+            }
+            img#bomb{
+                height: 100vh;
+                width: 100vh;
+            }
+            img#explosion{
+                width: 100vw;
+                height: 100vw;
+                position: fixed;
+                z-index: 0;
+                display: none;
+            }
+            img#explosion.shown{
+                display: block;
+            }
+            div{
+                position: fixed;
+                width: 100svw;
+                height: 100svh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+            input{
+                text-align: center;
+                font-size: 3vw;
+                color : #53de98;
+                font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+                width: fit-content;
+                background: none;
+                outline: none;
+                border: none;
+            }
+            button{
+                border: solid white 1px;
+                background-color: rgb(45, 215, 45);
+                color: rgb(0, 0, 0);
+                padding: 0.4em;
+                font-size: 2vw;
+                border-radius: 1vw;
+            }
+
+            button:hover{
+                background-color: rgb(0, 187, 0);
+            }
+
+            button.stop{
+                background-color: red;
+            }
+            button:hover.stop{
+                background-color: rgb(157, 0, 0);
+            }
+        </style>
+    </head>
+    <body>
+        <img id="bomb" src="bomb.jpg" alt="">
+        <img id="explosion" src="explosion.gif" alt="">
+        <div><input id="time-display"/><button id="button">Start</button></div>
+        <script>
+            const timeElement = document.getElementById("time-display");
+            const button = document.getElementById("button");
+            function displayTime(seconds){
+                let second = parseInt(seconds % 60);
+                let minutes = parseInt((seconds / 60 ) % 60);
+                let hours = parseInt(seconds / 60 / 60 )
+
+                second = `${second}`;
+                if(second.length == 1){
+                    second = `0${second}`;
+                }
+
+                minutes = `${minutes}`;
+                if(minutes.length == 1){
+                    minutes = `0${minutes}`;
+                }
+
+                hours = `${hours}`;
+                if(hours.length == 1){
+                    hours = `0${hours}`;
+                }
+                timeElement.value = `${hours}:${minutes}:${second}`;
+            }
+
+            let currentTimer = null;
+            const initialTime = "00:00:00";
+            let settedTime = initialTime;
+            let currenTimeInSeconds = 0;
+            let prevValueOfTimer = timeElement.value;
+
+            let isButtonInFinishMode = false;
+
+            timeElement.value = settedTime;
+
+            function resetTimer(){
+                clearInterval(currentTimer);
+                button.classList.remove("stop");
+                button.innerText = "Start";
+                timeElement.removeAttribute("readonly");
+                currentTimer = null;
+                timeElement.value = settedTime;
+                isButtonInFinishMode = false
+            }
+
+            function makeButtonInFinishMode(){
+                isButtonInFinishMode = true;
+                button.innerText = "Reset";
+            }
+
+            function timing(){
+                currenTimeInSeconds--;
+                displayTime(currenTimeInSeconds);
+                if(currenTimeInSeconds <= 0){
+                    //done here
+                    console.log("DONE!")
+                    clearInterval(currentTimer);
+                    makeButtonInFinishMode();
+                    let explodeSound = new Audio("explosion.mp3")
+                    explodeSound.play();                       
+                    document.getElementById("explosion").classList.add("shown");
+                    setTimeout(()=>{
+                        document.getElementById("explosion").classList.remove("shown");
+                    },1500);
+                    return;
+                }
+                //tick here
+                console.log("TICK");
+            }
+
+            button.addEventListener("click",(ev)=>{
+                if(isButtonInFinishMode){
+                    resetTimer();
+                    return;
+                }
+                if(currentTimer != null){
+                    resetTimer();
+                    return;
+                }
+                let matchResult = timeElement.value.match(/^(\d+):(\d+):(\d+)$/);
+                if(matchResult != null){
+                    let hour = parseInt(matchResult[1]) * 60 * 60;
+                    let minutes = parseInt(matchResult[2]) * 60;
+                    let seconds = parseInt(matchResult[3]);
+                    currenTimeInSeconds = hour + minutes + seconds; 
+                    if(currenTimeInSeconds == 0){
+                        return;
+                    }
+                    settedTime = timeElement.value;
+                }else{
+                    return;
+                }
+                currentTimer = setInterval(timing, 1000);
+                button.classList.add("stop");
+                timeElement.setAttribute("readonly",undefined);
+                button.innerText = "Stop";
+                
+            })
+        </script>
+    </body>
+</html>
